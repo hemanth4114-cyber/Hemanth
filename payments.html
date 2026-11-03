@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Payment Confirmation</title>
+
+<!-- Ionicons CDN -->
+<link href="https://unpkg.com/ionicons@5.5.2/dist/css/ionicons.min.css" rel="stylesheet" />
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+  body {
+    font-family: 'Poppins', Arial, sans-serif;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: #2c3e50;
+    margin: 0;
+    padding: 40px 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+  }
+
+  main.container {
+    max-width: 700px;
+    width: 100%;
+    background: #fff;
+    border-radius: 16px;
+    padding: 40px 50px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+  }
+
+  h2 {
+    font-weight: 700;
+    color: #34495e;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.6rem;
+  }
+
+  p {
+    margin-top: 0;
+    margin-bottom: 24px;
+    font-size: 1.2rem;
+    color: #555;
+  }
+
+  label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+    color: #34495e;
+    font-size: 1rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: #6a11cb;
+    box-shadow: 0 0 8px #6a11cb66;
+  }
+
+  .payment-methods {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    gap: 18px;
+  }
+
+  .payment-card {
+    flex: 1;
+    background: linear-gradient(145deg, #e0e7ff, #cfd7ff);
+    padding: 22px 0;
+    border-radius: 14px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    border: 3px solid transparent;
+    transition: border-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 5px 5px 15px #bec8ff, -5px -5px 15px #ffffff;
+    color: #334e68;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .payment-card:hover {
+    border-color: #6a11cb;
+    transform: translateY(-6px);
+  }
+
+  .payment-card.selected {
+    border-color: #6a11cb;
+    background: linear-gradient(145deg, #a18fff, #7a6aff);
+    color: white;
+    box-shadow: 0 10px 25px rgba(106, 17, 203, 0.5);
+  }
+
+  .payment-card ion-icon {
+    font-size: 36px;
+  }
+
+  button.btn-pay, button.btn-home {
+    width: 100%;
+    padding: 16px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    user-select: none;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  button.btn-pay {
+    background: #6a11cb;
+    color: white;
+    box-shadow: 0 8px 20px rgba(106, 17, 203, 0.7);
+  }
+
+  button.btn-pay:disabled,
+  button.btn-pay[aria-disabled="true"] {
+    background-color: #bbb;
+    box-shadow: none;
+    cursor: not-allowed;
+    color: #666;
+  }
+
+  button.btn-pay:not(:disabled):hover {
+    background-color: #4b0fa8;
+    box-shadow: 0 12px 30px rgba(75, 15, 168, 0.85);
+  }
+
+  button.btn-home {
+    background-color: #f3f4f6;
+    color: #6a11cb;
+    box-shadow: inset 0 0 0 3px #6a11cb;
+    font-weight: 600;
+  }
+
+  button.btn-home:hover {
+    background-color: #e5e7f7;
+  }
+
+  .method-details {
+    font-size: 1rem;
+    color: #7f8c8d;
+    margin-bottom: 25px;
+    padding: 12px 20px;
+    background: #f9f9f9;
+    border-radius: 10px;
+    border-left: 6px solid #6a11cb;
+  }
+
+  .hidden {
+    display: none !important;
+  }
+
+  #confirmationMessage {
+    text-align: center;
+    margin-top: 40px;
+    color: #6a11cb;
+  }
+
+  #confirmationMessage h2 {
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  /* Responsive */
+  @media (max-width: 760px) {
+    main.container {
+      padding: 30px 20px;
+    }
+    .payment-methods {
+      flex-direction: column;
+      gap: 16px;
+    }
+    .payment-card {
+      flex: none;
+      width: 100%;
+    }
+  }
+
+</style>
+</head>
+<body>
+  <main class="container" role="main" aria-label="Payment confirmation page">
+
+    <!-- Order summary is initially hidden -->
+    <section id="orderSummary" class="summary hidden" aria-live="polite" aria-atomic="true">
+      <h2><ion-icon name="calendar-outline"></ion-icon> Order Date:</h2>
+      <p id="order_date" aria-label="Order date"></p>
+
+      <h2><ion-icon name="card-outline"></ion-icon> Total Paid:</h2>
+      <p id="total_price" aria-label="Total price paid"></p>
+    </section>
+
+    <!-- Shipping Address Section -->
+    <section id="shippingSection" class="shipping-address" aria-label="Shipping address">
+      <h2><ion-icon name="location-outline"></ion-icon> Shipping Address</h2>
+      <form id="shippingForm" novalidate>
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" name="fullName" required placeholder="" autocomplete="name" />
+
+        <label for="addressLine1">Address Line 1</label>
+        <input type="text" id="addressLine1" name="addressLine1" required placeholder="123 Main St" autocomplete="address-line1" />
+
+        <label for="addressLine2">Address Line 2 (Optional)</label>
+        <input type="text" id="addressLine2" name="addressLine2" placeholder="Apartment, suite, etc." autocomplete="address-line2" />
+
+        <label for="city">City</label>
+        <input type="text" id="city" name="city" required placeholder="" autocomplete="address-level2" />
+
+        <label for="state">State / Province</label>
+        <input type="text" id="state" name="state" required placeholder="" autocomplete="address-level1" />
+
+        <label for="zipCode">Zip / Postal Code</label>
+        <input type="text" id="zipCode" name="zipCode" required placeholder="" autocomplete="postal-code" />
+
+        <label for="country">Country</label>
+        <input type="text" id="country" name="country" required placeholder="" autocomplete="country" />
+      </form>
+    </section>
+
+    <!-- Payment Methods Section -->
+    <section aria-label="Payment options">
+      <h2 style="margin-bottom: 30px; font-weight: 700; color: #34495e;">Select a Payment Method</h2>
+      <div class="payment-methods" role="list" aria-label="Payment methods">
+        <div class="payment-card" data-method="card" tabindex="0" role="listitem" aria-selected="false" aria-label="Credit or Debit Card">
+          <ion-icon name="card-outline"></ion-icon>
+          <p>Card</p>
+        </div>
+        <div class="payment-card" data-method="upi" tabindex="0" role="listitem" aria-selected="false" aria-label="UPI Payment">
+          <ion-icon name="logo-googlepay"></ion-icon>
+          <p>UPI</p>
+        </div>
+        <div class="payment-card" data-method="cod" tabindex="0" role="listitem" aria-selected="false" aria-label="Cash on Delivery">
+          <ion-icon name="cash-outline"></ion-icon>
+          <p>Cash on Delivery</p>
+        </div>
+        <div class="payment-card" data-method="netbanking" tabindex="0" role="listitem" aria-selected="false" aria-label="Net Banking">
+          <ion-icon name="wallet-outline"></ion-icon>
+          <p>Net Banking</p>
+        </div>
+      </div>
+
+      <form id="paymentForm" class="payment-form" novalidate>
+        <label for="cardName" style="display:none;"><ion-icon name="person-outline" class="icon"></ion-icon>Cardholder Name</label>
+        <input type="text" id="cardName" name="cardName" placeholder="Cardholder Name" disabled style="display:none;" autocomplete="cc-name" />
+
+        <label for="cardNumber" style="display:none;"><ion-icon name="card-outline" class="icon"></ion-icon>Card Number</label>
+        <input type="text" id="cardNumber" name="cardNumber" placeholder="Card Number" disabled style="display:none;" autocomplete="cc-number" maxlength="19" />
+
+        <label for="expDate" style="display:none;"><ion-icon name="calendar-outline" class="icon"></ion-icon>Expiry Date</label>
+        <input type="month" id="expDate" name="expDate" placeholder="MM/YYYY" disabled style="display:none;" autocomplete="cc-exp" />
+
+        <label for="cvv" style="display:none;"><ion-icon name="lock-closed-outline" class="icon"></ion-icon>CVV</label>
+        <input type="password" id="cvv" name="cvv" placeholder="CVV" disabled style="display:none;" autocomplete="cc-csc" maxlength="4" />
+
+        <label for="upiId" style="display:none;"><ion-icon name="logo-googlepay" class="icon"></ion-icon>UPI ID</label>
+        <input type="text" id="upiId" name="upiId" placeholder="example@bank" disabled style="display:none;" autocomplete="off" />
+
+        <label for="netBankingBank" style="display:none;"><ion-icon name="business-outline" class="icon"></ion-icon>Select Bank</label>
+        <select id="netBankingBank" name="netBankingBank" disabled style="display:none;">
+          <option value="" selected disabled>Choose Bank</option>
+          <option value="sbi">State Bank of India</option>
+          <option value="hdfc">HDFC Bank</option>
+          <option value="icici">ICICI Bank</option>
+          <option value="axis">Axis Bank</option>
+          <option value="kotak">Kotak Mahindra Bank</option>
+        </select>
+      </form>
+
+      <div id="codNote" class="method-details" aria-live="polite" aria-atomic="true" style="display:none;">
+        <p>Cash on Delivery selected. Please keep the exact amount ready upon delivery.</p>
+      </div>
+
+      <button id="confirmBtn" class="btn-pay" disabled aria-disabled="true" aria-label="Confirm and pay">Confirm Payment</button>
+      <button id="homeBtn" class="btn-home" aria-label="Back to Home Page">Back to Home</button>
+    </section>
+
+    <!-- Confirmation message container -->
+    <section id="confirmationMessage" class="hidden" aria-live="polite" aria-atomic="true">
+      <h2><ion-icon name="checkmark-circle-outline"></ion-icon> Thank You!</h2>
+    </section>
+  </main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString(undefined, {year:'numeric', month:'long', day:'numeric'});
+
+    const confirmBtn = document.getElementById('confirmBtn');
+    const orderSummary = document.getElementById('orderSummary');
+    const shippingSection = document.getElementById('shippingSection');
+    const paymentOptions = document.querySelector('section[aria-label="Payment options"]');
+    const confirmationMessage = document.getElementById('confirmationMessage');
+    const orderDateP = document.getElementById('order_date');
+    const totalPriceP = document.getElementById('total_price');
+
+    confirmBtn.addEventListener('click', () => {
+      // Hide form sections
+      shippingSection.classList.add('hidden');
+      paymentOptions.classList.add('hidden');
+
+      // Update and show order summary
+      orderDateP.textContent = dateStr;
+      totalPriceP.textContent = '$120.00';
+      orderSummary.classList.remove('hidden');
+
+      // Show thank you message below summary
+      confirmationMessage.classList.remove('hidden');
+    });
+
+    // Home button reloads page
+    document.getElementById('homeBtn').addEventListener('click', () => {
+      location.reload();
+    });
+
+    setupPaymentSelection();
+  });
+
+  const paymentCards = document.querySelectorAll('.payment-card');
+  const codNote = document.getElementById('codNote');
+  const confirmBtn = document.getElementById('confirmBtn');
+
+  function setupPaymentSelection() {
+    paymentCards.forEach(card => {
+      card.addEventListener('click', () => {
+        selectPaymentMethod(card.getAttribute('data-method'));
+      });
+      card.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectPaymentMethod(card.getAttribute('data-method'));
+        }
+      });
+    });
+  }
+
+  function resetPaymentForm() {
+    const inputIds = ['cardName', 'cardNumber', 'expDate', 'cvv', 'upiId', 'netBankingBank'];
+    inputIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.value = '';
+        el.disabled = true;
+        const label = el.previousElementSibling;
+        if (label) label.style.display = 'none';
+        el.style.display = 'none';
+      }
+    });
+    codNote.style.display = 'none';
+  }
+
+  function enableInputs(ids) {
+    ids.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.disabled = false;
+        const label = el.previousElementSibling;
+        if (label) label.style.display = 'block';
+        el.style.display = '';
+      }
+    });
+  }
+
+  function selectPaymentMethod(method) {
+    paymentCards.forEach(card => {
+      const selected = card.getAttribute('data-method') === method;
+      card.classList.toggle('selected', selected);
+      card.setAttribute('aria-selected', selected ? 'true' : 'false');
+    });
+
+    resetPaymentForm();
+
+    confirmBtn.disabled = false;
+    confirmBtn.setAttribute('aria-disabled', 'false');
+
+    switch (method) {
+      case 'card':
+        enableInputs(['cardName', 'cardNumber', 'expDate', 'cvv']);
+        break;
+      case 'upi':
+        enableInputs(['upiId']);
+        break;
+      case 'cod':
+        codNote.style.display = 'block';
+        break;
+      case 'netbanking':
+        enableInputs(['netBankingBank']);
+        break;
+      default:
+        confirmBtn.disabled = true;
+        confirmBtn.setAttribute('aria-disabled', 'true');
+        break;
+    }
+  }
+</script>
+
+</body>
+</html>
